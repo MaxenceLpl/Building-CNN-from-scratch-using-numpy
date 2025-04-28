@@ -5,7 +5,7 @@ class ReLu:
     def __init__(self):
         pass
     
-    def forward(self, input : List[float]):
+    def forward(self, input : List[float], training=True):
         self.input = input
         self.output = np.maximum(0, input)
         
@@ -20,7 +20,7 @@ class softmax:
     def __init__(self):
         pass 
     
-    def forward(self, input : List[float]):
+    def forward(self, input : List[float], training=True):
         self.input = input
         maximum = np.max(input, axis=1, keepdims=True)
         exp_shifted = np.exp(input - maximum)

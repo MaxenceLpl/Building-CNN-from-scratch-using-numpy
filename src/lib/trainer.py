@@ -1,7 +1,9 @@
 import numpy as np 
 
+from src.lib.optimizers import SGD, Adam
+
 class trainer:
-    def __init__(self, model, inputs, targets, train_test_split = 0.8, random_state = 42, shuffle = True, custom_train_test_set = None):
+    def __init__(self, model, inputs, targets, train_test_split = 0.8, random_state = 42, shuffle = True, custom_train_test_set = None, float_type = np.float32):
         self.model = model
         self.inputs = inputs
         self.targets = targets
@@ -33,26 +35,38 @@ class trainer:
             self.test_Y = targets[self.train_size:]
         else:
             self.train_X, self.train_Y, self.test_X, self.test_Y = custom_train_test_set
+            
+        self.train_X = self.train_X.astype(float_type)
+        self.train_Y = self.train_Y.astype(float_type)
+        self.test_X = self.test_X.astype(float_type)
+        self.test_Y = self.test_Y.astype(float_type)
+
         
-    def train(self, nb_epochs = 100, batch_size = 64, learning_rate = 0.01):
+    def train(self, nb_epochs = 100, batch_size = 64, optimizer=SGD(learning_rate=0.01)):
+        print(0)
+        self.model.intialise_targets(self.test_Y)
+        self.model.forward(self.test_X, training = False)
+        
+        print(self.model.loss) 
+        print(self.model.accuracy)
         for epoch in range(1, nb_epochs+1):
             print(epoch)
-            X_batches, Y_batches = self.batch_train_data(batch_size=batch_size)
+            X_batches, Y_batches = self.batch_train_data(batch_size=batch_size) 
             
             for x, y in zip(X_batches, Y_batches):
                 self.model.intialise_targets(y)
                 self.model.forward(x)
                 self.model.backward()
-                self.model.update_params(learning_rate = learning_rate)
+                self.model.update_params(optimizer = optimizer)
             
             ###test####
             self.model.intialise_targets(self.test_Y)
-            self.model.forward(self.test_X)
+            self.model.forward(self.test_X, training=False)
             
             print(self.model.loss) 
             print(self.model.accuracy)           
             
-        return self.model.prediction, self.model.loss
+        return self.model.loss, self.model.accuracy
             
     def batch_train_data(self, batch_size = 64):
         batch_train_data_X = self.train_X
