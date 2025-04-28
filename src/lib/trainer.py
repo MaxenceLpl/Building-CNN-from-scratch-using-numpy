@@ -1,4 +1,4 @@
-import numpy as np 
+import cupy as np 
 
 from src.lib.optimizers import SGD, Adam
 
@@ -21,7 +21,8 @@ class trainer:
         assert(nb_of_inputs == nb_of_targets)
         
         if shuffle:
-            indices = np.random.permutation(len(inputs))
+            indices = np.arange(len(inputs))
+            indices = np.random.permutation(indices)
             inputs = inputs[indices]
             targets = targets[indices]
         
@@ -42,7 +43,7 @@ class trainer:
         self.test_Y = self.test_Y.astype(float_type)
 
         
-    def train(self, nb_epochs = 100, batch_size = 64, optimizer=SGD(learning_rate=0.01)):
+    def train(self, nb_epochs = 100, batch_size = 64, optimizer=SGD(learning_rate=0.01), test_accuracy = True):
         print(0)
         self.model.intialise_targets(self.test_Y)
         self.model.forward(self.test_X, training = False)
@@ -59,25 +60,35 @@ class trainer:
                 self.model.backward()
                 self.model.update_params(optimizer = optimizer)
             
-            ###test####
-            self.model.intialise_targets(self.test_Y)
-            self.model.forward(self.test_X, training=False)
-            
-            print(self.model.loss) 
-            print(self.model.accuracy)           
-            
+            if test_accuracy:
+                ###test####
+                self.model.intialise_targets(self.test_Y)
+                self.model.forward(self.test_X, training=False)
+                
+                print(self.model.loss) 
+                print(self.model.accuracy)     
+                
+        print("final")      
+        self.model.intialise_targets(self.test_Y)
+        self.model.forward(self.test_X, training=False)
+        
+        print(self.model.loss) 
+        print(self.model.accuracy) 
+        
         return self.model.loss, self.model.accuracy
             
     def batch_train_data(self, batch_size = 64):
         batch_train_data_X = self.train_X
         batch_train_data_y = self.train_Y
         
-        indices = np.random.permutation(len(batch_train_data_X))
+        indices = np.arange(len(batch_train_data_X))
+        indices = np.random.permutation(indices)
         batch_train_data_X = batch_train_data_X[indices]
         batch_train_data_y = batch_train_data_y[indices]
-        
-        X_batches = np.array_split(batch_train_data_X, np.ceil(len(batch_train_data_X) / batch_size))
-        y_batches = np.array_split(batch_train_data_y, np.ceil(len(batch_train_data_y) / batch_size))
+
+        n_splits = int(np.ceil(len(batch_train_data_X) / batch_size))
+        X_batches = np.array_split(batch_train_data_X, n_splits)
+        y_batches = np.array_split(batch_train_data_y, n_splits)
         
         return X_batches, y_batches
 

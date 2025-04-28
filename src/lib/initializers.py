@@ -1,4 +1,4 @@
-import numpy as np
+import cupy as np
 
 class Initializer:
     def __init__(self, dtype=np.float64):

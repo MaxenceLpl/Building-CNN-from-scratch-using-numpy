@@ -1,4 +1,4 @@
-import numpy as np 
+import cupy as np 
 from typing import List
 
 from src.lib.initializers import HeInitializer, XavierInitializer, GlorotUniformInitializer, ZeroInitializer, OneInitializer
@@ -72,7 +72,7 @@ class flatten:
         return grad_output.reshape(self.input_shape)
         
     def get_output_shape(self, input_shape):
-        return (np.prod(input_shape),)
+        return (int(np.prod(np.array(input_shape))),)
 
 class BatchNorm1D:
     def __init__(self, momentum = 0.99, eps = 1e-15):
@@ -256,7 +256,7 @@ class Conv2D:
             input_padded.strides[3] * stride
         )
 
-        patches = np.lib.stride_tricks.as_strided(input_padded, shape=shape, strides=strides, writeable=False)
+        patches = np.lib.stride_tricks.as_strided(input_padded, shape=shape, strides=strides)
 
         # Reshape pour avoir (N * H_out * W_out, C * KH * KW)
         patches_reshaped = patches.transpose(0, 4, 5, 1, 2, 3).reshape(N * self.height_out * self.width_out, -1)
@@ -326,8 +326,7 @@ class MaxPooling2D:
                 S * input.strides[3],
                 input.strides[2],
                 input.strides[3]
-            ),
-            writeable=False
+            )
         )
 
         # On reshape pour vectoriser

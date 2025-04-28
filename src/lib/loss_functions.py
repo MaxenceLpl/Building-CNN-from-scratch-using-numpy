@@ -1,8 +1,6 @@
-import numpy as np 
+import cupy as np 
 
 from typing import List
-
-import numpy as np
 
 class CrossEntropy:
     def __init__(self, target=None, l2_lambda = 1e-8, model = None):
