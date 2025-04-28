@@ -3,16 +3,38 @@ import numpy as np
 from src.lib.optimizers import SGD, Adam
 
 class model:
-    def __init__(self, layers):
+    def __init__(self, layers, input_shape, float_type = np.float32):
         self.layers = layers
         self.layers[-1].model = self
+        
+        self.input_shape = input_shape
+        
+        self.initialize_input_shapes()
+        self.initialize_weights(float_type=float_type)
+        
+    def initialize_input_shapes(self):
+        input_shape = self.input_shape[1:]
+        
+        for layer in self.layers:
+            print(input_shape)
+            layer.input_shape = input_shape
+            input_shape = layer.get_output_shape(input_shape)
+            
+    def initialize_weights(self, float_type = np.float64):
+        for layer in self.layers:
+            if hasattr(layer, "initialize_weights"):
+                layer.initialize_weights(float_type = float_type)
         
     def forward(self, input, training = True):
         self.input = input
         loss = input
         
+        import time
+        
         for layer in self.layers:
+            start = time.time()
             loss = layer.forward(loss, training = training)
+            #print(f"{layer.__class__.__name__} : {time.time() - start}")
 
         accuracy = self.layers[-1].accuracy
         

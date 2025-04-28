@@ -15,6 +15,9 @@ class ReLu:
         self.grad_input = grad_output*(self.input > 0)
         
         return self.grad_input
+
+    def get_output_shape(self, input_shape):
+        return input_shape
     
 class softmax:
     def __init__(self):
@@ -32,3 +35,6 @@ class softmax:
     def backward(self, grad_output):
         self.grad_input = grad_output
         return self.grad_input
+    
+    def get_output_shape(self, input_shape):
+        return input_shape

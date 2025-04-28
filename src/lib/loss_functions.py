@@ -5,16 +5,13 @@ from typing import List
 import numpy as np
 
 class CrossEntropy:
-    def __init__(self, nb_of_classes, target=None, l2_lambda = 1e-8, model = None):
-        self.nb_of_classes = nb_of_classes
+    def __init__(self, target=None, l2_lambda = 1e-8, model = None):
         self.target = target
         self.l2_lambda = l2_lambda
         self.model = model
         
-        
     def forward(self, prediction, training=True):
-        self.logits = prediction  # On stocke pour backward
-        batch_size = prediction.shape[0]
+        self.logits = prediction
         
         # Trick pour stabilité numérique
         logits_shifted = prediction - np.max(prediction, axis=1, keepdims=True)
@@ -64,3 +61,7 @@ class CrossEntropy:
         acc = np.mean(pred_labels == true_labels)
         self.accuracy = acc
         return acc
+
+    def get_output_shape(self, input_shape):
+        self.nb_of_classes = input_shape[0]
+        return self.nb_of_classes
