@@ -1,13 +1,16 @@
-import cupy as np 
+from src.lib.backend import backend, HasBackend
 from typing import List
 
-class ReLu:
+class ActivationFunction(HasBackend):
+    pass
+
+class ReLu(ActivationFunction):
     def __init__(self):
         pass
     
     def forward(self, input : List[float], training=True):
         self.input = input
-        self.output = np.maximum(0, input)
+        self.output = self.xp.maximum(0, input)
         
         return self.output
     
@@ -19,15 +22,15 @@ class ReLu:
     def get_output_shape(self, input_shape):
         return input_shape
     
-class softmax:
+class softmax(ActivationFunction):
     def __init__(self):
         pass 
     
     def forward(self, input : List[float], training=True):
         self.input = input
-        maximum = np.max(input, axis=1, keepdims=True)
-        exp_shifted = np.exp(input - maximum)
-        normalisation_divisor = np.sum(exp_shifted, axis=1, keepdims=True)
+        maximum = self.xp.max(input, axis=1, keepdims=True)
+        exp_shifted = self.xp.exp(input - maximum)
+        normalisation_divisor = self.xp.sum(exp_shifted, axis=1, keepdims=True)
         self.output = exp_shifted / normalisation_divisor
         
         return self.output

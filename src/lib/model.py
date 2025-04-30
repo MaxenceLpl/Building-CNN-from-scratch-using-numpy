@@ -1,13 +1,16 @@
-import cupy as np
-
+from src.lib.backend import backend, HasBackend
 from src.lib.optimizers import SGD, Adam
 
-class model:
-    def __init__(self, layers, input_shape, float_type = np.float32):
+class Model(HasBackend):
+    pass
+
+class model(Model):
+    def __init__(self, layers, input_shape, float_type = None):
         self.layers = layers
         self.layers[-1].model = self
         
         self.input_shape = input_shape
+        float_type = float_type if float_type is not None else self.xp.float32
         
         self.initialize_input_shapes()
         self.initialize_weights(float_type=float_type)
@@ -16,11 +19,11 @@ class model:
         input_shape = self.input_shape[1:]
         
         for layer in self.layers:
-            print(input_shape)
             layer.input_shape = input_shape
             input_shape = layer.get_output_shape(input_shape)
             
-    def initialize_weights(self, float_type = np.float64):
+    def initialize_weights(self, float_type = None):
+        float_type = float_type if float_type is not None else self.xp.float32
         for layer in self.layers:
             if hasattr(layer, "initialize_weights"):
                 layer.initialize_weights(float_type = float_type)
@@ -34,7 +37,6 @@ class model:
         for layer in self.layers:
             start = time.time()
             loss = layer.forward(loss, training = training)
-            #print(f"{layer.__class__.__name__} : {time.time() - start}")
 
         accuracy = self.layers[-1].accuracy
         
@@ -71,6 +73,20 @@ class model:
             
     def intialise_targets(self, targets):
         self.layers[-1].target = targets
+        
+    def summary(self):
+        print("┌" + "─" * 70 + "┐")
+        print(f"{'Layer (type)':<20} {'Input Shape':<25} {'Output Shape':<25}")
+        print("├" + "─" * 20 + "┬" + "─" * 25 + "┬" + "─" * 25 + "┤")
+
+        for layer in self.layers:
+            name = layer.__class__.__name__
+            in_shape = str(layer.input_shape)
+            out_shape = str(layer.get_output_shape(layer.input_shape))
+            print(f"{name:<20} {in_shape:<25} {out_shape:<25}")
+
+        print("└" + "─" * 70 + "┘")
+
         
         
     

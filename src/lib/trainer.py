@@ -1,12 +1,21 @@
-import cupy as np 
+from src.lib.backend import backend, HasBackend
 
 from src.lib.optimizers import SGD, Adam
 
-class trainer:
-    def __init__(self, model, inputs, targets, train_test_split = 0.8, random_state = 42, shuffle = True, custom_train_test_set = None, float_type = np.float32):
+class Trainer(HasBackend):
+    pass
+
+class trainer(Trainer):
+    def __init__(self, model, inputs, targets, train_test_split = 0.8, random_state = 42, shuffle = True, custom_train_test_set = None, float_type = None):
         self.model = model
+        
+        inputs = self.asarray(inputs)
+        targets = self.asarray(targets)
+        
         self.inputs = inputs
         self.targets = targets
+        
+        float_type = float_type if float_type is not None else self.xp.float32
         
         nb_of_inputs = inputs.shape[0]
         nb_of_targets = targets.shape[0]
@@ -21,8 +30,8 @@ class trainer:
         assert(nb_of_inputs == nb_of_targets)
         
         if shuffle:
-            indices = np.arange(len(inputs))
-            indices = np.random.permutation(indices)
+            indices = self.xp.arange(len(inputs))
+            indices = self.xp.random.permutation(indices)
             inputs = inputs[indices]
             targets = targets[indices]
         
@@ -36,6 +45,10 @@ class trainer:
             self.test_Y = targets[self.train_size:]
         else:
             self.train_X, self.train_Y, self.test_X, self.test_Y = custom_train_test_set
+            self.train_X = self.asarray(self.train_X)
+            self.train_Y = self.asarray(self.train_Y)
+            self.test_X = self.asarray(self.test_X)
+            self.test_Y = self.asarray(self.test_Y)
             
         self.train_X = self.train_X.astype(float_type)
         self.train_Y = self.train_Y.astype(float_type)
@@ -48,7 +61,7 @@ class trainer:
         self.model.intialise_targets(self.test_Y)
         self.model.forward(self.test_X, training = False)
         
-        print(self.model.loss) 
+        print(self.model.loss)
         print(self.model.accuracy)
         for epoch in range(1, nb_epochs+1):
             print(epoch)
@@ -81,14 +94,14 @@ class trainer:
         batch_train_data_X = self.train_X
         batch_train_data_y = self.train_Y
         
-        indices = np.arange(len(batch_train_data_X))
-        indices = np.random.permutation(indices)
+        indices = self.xp.arange(len(batch_train_data_X))
+        indices = self.xp.random.permutation(indices)
         batch_train_data_X = batch_train_data_X[indices]
         batch_train_data_y = batch_train_data_y[indices]
 
-        n_splits = int(np.ceil(len(batch_train_data_X) / batch_size))
-        X_batches = np.array_split(batch_train_data_X, n_splits)
-        y_batches = np.array_split(batch_train_data_y, n_splits)
+        n_splits = int(self.xp.ceil(len(batch_train_data_X) / batch_size))
+        X_batches = self.xp.array_split(batch_train_data_X, n_splits)
+        y_batches = self.xp.array_split(batch_train_data_y, n_splits)
         
         return X_batches, y_batches
 
